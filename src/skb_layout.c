@@ -423,6 +423,8 @@ static void skb__itemize(skb__layout_build_context_t* build_context, skb_layout_
 							int32_t font_run_start = text_range.start;
 							skb_font_handle_t cur_font_handle = 0;
 
+							bool fallback_requested = false;
+
 							for (int32_t j = text_range.start; j < text_range.end; j++) {
 								// Treat control characters are space for font selection, since fonts dont have glyphs for control chars.
 								// Missing glyph would break runs, and cause missing glyphs. During rendering we do treat control chars as spaces too.
@@ -430,10 +432,32 @@ static void skb__itemize(skb__layout_build_context_t* build_context, skb_layout_
 								skb_font_handle_t font_handle = cur_font_handle;
 								if (!skb_font_collection_font_has_codepoint(layout->params.font_collection, cur_font_handle, codepoint)) {
 									// Find new font
+									bool found = false;
 									for (int32_t k = 0; k < fonts_count; k++) {
 										if (skb_font_collection_font_has_codepoint(layout->params.font_collection, fonts[k], codepoint)) {
 											font_handle = fonts[k];
+											found = true;
 											break;
+										}
+									}
+									// A font can claim a script it covers only partly. If none of the matched fonts has the codepoint,
+									// give the fallback callback one chance per run to add fonts, and match again.
+									skb_font_collection_t* font_collection = layout->params.font_collection;
+									if (!found && !fallback_requested && font_collection->fallback_func) {
+										fallback_requested = true;
+										if (font_collection->fallback_func(font_collection, hb_language_to_string(run_lang), script, font_family, font_collection->fallback_context)) {
+											const int32_t matched_count = skb_font_collection_match_fonts(
+												font_collection, hb_language_to_string(run_lang), script, font_family,
+												font_weight, font_style, font_stretch,
+												fonts, SKB_COUNTOF(fonts));
+											if (matched_count > 0)
+												fonts_count = matched_count;
+											for (int32_t k = 0; k < fonts_count; k++) {
+												if (skb_font_collection_font_has_codepoint(font_collection, fonts[k], codepoint)) {
+													font_handle = fonts[k];
+													break;
+												}
+											}
 										}
 									}
 								}
