@@ -1461,7 +1461,7 @@ static bool skb__truncate_line(skb_layout_t* layout, int32_t line_idx, bool is_l
 			const skb_baseline_t baseline_align = skb_attributes_get_baseline_align(layout->params.layout_attributes, layout->params.attribute_collection);
 			const skb_baseline_set_t baseline_set = skb_font_get_baseline_set(layout->params.font_collection, pruned_run_info.font_handle, layout->resolved_direction, script, pruned_run_info.font_size);
 
-			const float baseline = -baseline_set.baselines[baseline_align];
+			const float baseline = baseline_set.baselines[baseline_align];
 			const float ref_baseline = baseline_set.alphabetic - baseline_set.baselines[baseline_align];
 
 			// Try to use the actual ellipsis character, but fall back to 3 periods.
@@ -1480,7 +1480,7 @@ static bool skb__truncate_line(skb_layout_t* layout, int32_t line_idx, bool is_l
 			hb_position_t x, y;
 			if (hb_font_get_glyph_h_origin (font->hb_font, ellipsis_gid, &x, &y)) {
 				offset_x = (float)x * scale;
-				offset_y = (float)y * scale;
+				offset_y = -(float)y * scale;
 			}
 			offset_y -= baseline;
 
