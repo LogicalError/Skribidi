@@ -54,8 +54,9 @@ typedef struct skb_font_t {
 	int32_t baseline_sets_count;		// Number of baseline sets
 	int32_t baseline_sets_cap;			// Capacity of the baseline sets
 
-	skb_rect2_t* glyph_bounds;	// Array of glyph bounds.
-	int32_t glyph_bounds_count;
+	skb_rect2_t* glyph_bounds;			// Glyph bounds, allocated and filled on first use.
+	uint32_t* glyph_bounds_cached;		// One bit per glyph, set when its bounds have been computed.
+	int32_t glyph_bounds_count;			// Number of glyphs in the font.
 } skb_font_t;
 
 #endif // SKB_FONT_COLLECTION_INTERNAL_H

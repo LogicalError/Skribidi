@@ -385,6 +385,8 @@ SKB_API uint32_t skb_font_collection_get_id(const skb_font_collection_t* font_co
 
 /**
  * Returns the bounding rect of the specified glyph.
+ * The bounds are measured on the first query of each glyph and cached in the font,
+ * so like layout, this must not run on two threads at once for the same collection.
  * @param font_collection font collection to use.
  * @param font_handle font to use.
  * @param glyph_id id of the glyph to query.
